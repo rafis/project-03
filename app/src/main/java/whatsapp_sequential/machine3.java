@@ -122,11 +122,11 @@ public class machine3{
 	    requires true;
 	    assignable this.owner;
 	    ensures this.owner == owner;*/
-	public void set_owner(BSet<Pair<Integer,Integer>> owner){
-		set_owner(new BRelation<>(owner));
-	}
 	public void set_owner(BRelation<Integer,Integer> owner){
 		this.owner = owner;
+	}
+	public void set_owner(BSet<Pair<Integer,Integer>> owner){
+		set_owner(new BRelation<>(owner));
 	}
 
 	/*@ public normal_behavior
