@@ -16,8 +16,11 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import whatsapp_sequential.machine3;
 
@@ -62,7 +65,7 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnCompleteListener(LoginActivity.this, task -> {
                     if (task.isSuccessful()) {
                         Integer userId = App.getMachine().get_nextUserIndex();
-                        Log.d(TAG, "signInAnonymously:success");
+                        if (userId == null) userId = 1;
 
                         FirebaseDatabase.getInstance().getReference()
                                 .child("users_names")
@@ -70,7 +73,7 @@ public class LoginActivity extends AppCompatActivity {
 
                         App.getMachine().get_add_user().run_add_user(userId);
 
-                        PreferenceManager.getDefaultSharedPreferences(this)
+                        PreferenceManager.getDefaultSharedPreferences(LoginActivity.this)
                                 .edit()
                                 .putInt("user_id", userId)
                                 .apply();
@@ -79,9 +82,7 @@ public class LoginActivity extends AppCompatActivity {
                                 .makeText(LoginActivity.this, String.format("Welcome, %s!", nickname), Toast.LENGTH_SHORT)
                                 .show();
 
-                        Intent chatsIntent = new Intent(this, ChatsActivity.class);
-                        chatsIntent.putExtra(ChatsActivity.EXTRA_USER_ID, userId);
-                        startActivity(chatsIntent);
+                        startActivity(new Intent(LoginActivity.this, ChatsActivity.class));
 
                         finish();
                     } else {

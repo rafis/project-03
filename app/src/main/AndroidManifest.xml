@@ -24,6 +24,7 @@
         </activity>
 
         <activity android:name=".ChatsActivity" />
+        <activity android:name=".ContactsActivity" />
 
     </application>
 
