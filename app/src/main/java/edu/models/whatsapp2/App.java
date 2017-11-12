@@ -2,19 +2,18 @@ package edu.models.whatsapp2;
 
 import android.app.Application;
 
-import whatsapp_sequential.MachineWrapper;
-import whatsapp_sequential.machine3;
+import whatsapp_sequential.Machine;
 
 public class App extends Application {
-    private static MachineWrapper machine;
+    private static Machine machine;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        machine = new MachineWrapper();
+        machine = new Machine();
     }
 
-    public static MachineWrapper getMachine() {
+    public static Machine getMachine() {
         return machine;
     }
 }

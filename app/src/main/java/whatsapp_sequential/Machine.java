@@ -2,6 +2,7 @@ package whatsapp_sequential;
 
 import android.util.Log;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -10,6 +11,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+
 import org.greenrobot.eventbus.EventBus;
 
 import edu.models.whatsapp2.events.UsersEvent;
@@ -17,12 +19,13 @@ import eventb_prelude.BRelation;
 import eventb_prelude.BSet;
 import eventb_prelude.Pair;
 
-public class MachineWrapper extends machine3 {
-    private static final String TAG = MachineWrapper.class.getSimpleName();
+public class Machine extends machine3 {
+    private static final String TAG = Machine.class.getSimpleName();
 
-    private Gson gson = new GsonBuilder().create();
+    ObjectMapper mapper = new ObjectMapper();
+    Gson gson = new GsonBuilder().create();
 
-    public MachineWrapper() {
+    public Machine() {
         super();
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
         reference.addValueEventListener(valueEventListener);
@@ -36,45 +39,48 @@ public class MachineWrapper extends machine3 {
                     onDataChange(snapshot);
                 return;
             }
-            switch (dataSnapshot.getKey()) {
-                case "contentorder":
-                    MachineWrapper.super.set_contentorder(gson.fromJson(dataSnapshot.getValue(String.class), BRelation.class));
-                    break;
-                case "owner":
-                    MachineWrapper.super.set_owner(gson.fromJson(dataSnapshot.getValue(String.class), BRelation.class));
-                    break;
-                case "toread":
-                    MachineWrapper.super.set_toread(gson.fromJson(dataSnapshot.getValue(String.class), BRelation.class));
-                    break;
-                case "inactive":
-                    MachineWrapper.super.set_inactive(gson.fromJson(dataSnapshot.getValue(String.class), BRelation.class));
-                    break;
-                case "chatcontent":
-                    MachineWrapper.super.set_chatcontent(gson.fromJson(dataSnapshot.getValue(String.class), BRelation.class));
-                    EventBus.getDefault().post(new UsersEvent());
-                    break;
-                case "chat":
-                    MachineWrapper.super.set_chat(gson.fromJson(dataSnapshot.getValue(String.class), BRelation.class));
-                    break;
-                case "nextindex":
-                    MachineWrapper.super.set_nextindex(dataSnapshot.getValue(Integer.class));
-                    break;
-                case "nextUserIndex":
-                    MachineWrapper.super.set_nextUserIndex(dataSnapshot.getValue(Integer.class));
-                    break;
-                case "user":
-                    MachineWrapper.super.set_user(gson.fromJson(dataSnapshot.getValue(String.class), BSet.class));
-                    EventBus.getDefault().post(new UsersEvent());
-                    break;
-                case "active":
-                    MachineWrapper.super.set_active(gson.fromJson(dataSnapshot.getValue(String.class), BRelation.class));
-                    break;
-                case "muted":
-                    MachineWrapper.super.set_muted(gson.fromJson(dataSnapshot.getValue(String.class), BRelation.class));
-                    break;
-                case "content":
-                    MachineWrapper.super.set_content(gson.fromJson(dataSnapshot.getValue(String.class), BSet.class));
-                    break;
+            try {
+                switch (dataSnapshot.getKey()) {
+                    case "contentorder":
+                        Machine.super.set_contentorder(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        break;
+                    case "owner":
+                        Machine.super.set_owner(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        break;
+                    case "toread":
+                        Machine.super.set_toread(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        break;
+                    case "inactive":
+                        Machine.super.set_inactive(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        break;
+                    case "chatcontent":
+                        Machine.super.set_chatcontent(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        EventBus.getDefault().post(new UsersEvent());
+                        break;
+                    case "chat":
+                        Machine.super.set_chat(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        break;
+                    case "nextindex":
+                        Machine.super.set_nextindex(dataSnapshot.getValue(Integer.class));
+                        break;
+                    case "nextUserIndex":
+                        Machine.super.set_nextUserIndex(dataSnapshot.getValue(Integer.class));
+                        break;
+                    case "user":
+                        Machine.super.set_user(mapper.readValue(dataSnapshot.getValue(String.class), BSet.class));
+                        EventBus.getDefault().post(new UsersEvent());
+                        break;
+                    case "active":
+                        Machine.super.set_active(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        break;
+                    case "muted":
+                        Machine.super.set_muted(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        break;
+                    case "content":
+                        Machine.super.set_content(mapper.readValue(dataSnapshot.getValue(String.class), BSet.class));
+                        break;
+                }
+            } catch (Exception e) {
             }
         }
 
