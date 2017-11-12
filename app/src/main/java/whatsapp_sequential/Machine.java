@@ -14,6 +14,9 @@ import com.google.gson.GsonBuilder;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import edu.models.whatsapp2.events.UsersEvent;
 import eventb_prelude.BRelation;
 import eventb_prelude.BSet;
@@ -24,6 +27,7 @@ public class Machine extends machine3 {
 
     ObjectMapper mapper = new ObjectMapper();
     Gson gson = new GsonBuilder().create();
+    private Map<String, String> users_names;
 
     public Machine() {
         super();
@@ -79,6 +83,13 @@ public class Machine extends machine3 {
                     case "content":
                         Machine.super.set_content(mapper.readValue(dataSnapshot.getValue(String.class), BSet.class));
                         break;
+                    case "users_names":
+                        Map<String, String> users_names = new HashMap<String, String>();
+                        for (DataSnapshot child : dataSnapshot.getChildren()) {
+                            users_names.put(child.getKey(), child.getValue(String.class));
+                        }
+                        Machine.this.set_users_names(users_names);
+                        break;
                 }
             } catch (Exception e) {
             }
@@ -89,6 +100,14 @@ public class Machine extends machine3 {
             Log.d(TAG, "databaseError:" + databaseError.getMessage());
         }
     };
+
+    public void set_users_names(Map<String, String> users_names) {
+        this.users_names = users_names;
+    }
+
+    public Map<String, String> get_users_names() {
+        return this.users_names;
+    }
 
     @Override
     public void set_contentorder(BRelation<Integer, Integer> contentorder) {

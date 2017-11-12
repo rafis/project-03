@@ -16,6 +16,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.Map;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import edu.models.whatsapp2.events.MessagesEvent;
@@ -36,7 +38,9 @@ public class ContactsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
         ButterKnife.bind(this);
+        contactsList = (ListView) findViewById(R.id.contacts_list);
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        contactsList.setAdapter(adapter);
         update();
     }
 
@@ -44,6 +48,13 @@ public class ContactsActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
+
+        adapter.clear();
+        Map<String, String> users_names = machine.get_users_names();
+        for(Integer user : machine.get_user()) {
+            adapter.add(users_names.get(user.toString()));
+        }
+        adapter.notifyDataSetChanged();
     }
 
     @Override

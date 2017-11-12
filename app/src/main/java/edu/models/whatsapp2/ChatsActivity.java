@@ -22,7 +22,6 @@ public class ChatsActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chats);
-        startActivity(new Intent(this, ContactsActivity.class));
         update();
     }
 
@@ -46,4 +45,10 @@ public class ChatsActivity extends AppCompatActivity {
     public void onMessage(MessagesEvent event) {
         update();
     }
+
+    /** Called when the user taps the New Chat button */
+    public void newChat(View view) {
+        startActivity(new Intent(this, ContactsActivity.class));
+    }
+
 }
