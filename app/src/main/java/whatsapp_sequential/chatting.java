@@ -42,7 +42,7 @@ public class chatting{
 
 			machine.set_content((content_tmp.union(new BSet<Integer>(c))));
 			machine.set_chat((chat_tmp.union(new BRelation<Integer,Integer>(new Pair<Integer,Integer>(u2,u1)))));
-			machine.set_chatcontent((chatcontent_tmp.union(new BRelation<Pair<Integer,Integer>,Pair<Integer,Integer>>(new Pair<Pair<Integer, Integer>,Pair<Integer,Integer>>(new Pair<Integer,Integer>(c,u1),new Pair<Integer,Integer>(u1,u2))).union(new BRelation<Pair<Integer,Integer>,Pair<Integer,Integer>>(new Pair<Pair<Integer,Integer>,Pair<Integer,Integer>>(new Pair<Integer,Integer>(c,u1),new Pair<Integer,Integer>(u2,u1)))))));
+			machine.set_chatcontent((chatcontent_tmp.union(new BRelation<Pair<Integer,Integer>,Pair<Integer,Integer>>(new Pair<Pair<Integer,Integer>,Pair<Integer,Integer>>(new Pair<Integer,Integer>(c,u1),new Pair<Integer,Integer>(u1,u2))).union(new BRelation<Pair<Integer,Integer>,Pair<Integer,Integer>>(new Pair<Pair<Integer,Integer>,Pair<Integer,Integer>>(new Pair<Integer,Integer>(c,u1),new Pair<Integer,Integer>(u2,u1)))))));
 			machine.set_toread((toread_tmp.union(new BRelation<Integer,Integer>(new Pair<Integer,Integer>(u2,u1)))).difference(machine.get_active()));
 			machine.set_owner((owner_tmp.union(new BRelation<Integer,Integer>(new Pair<Integer,Integer>(c,u1)))));
 			machine.set_nextindex(new Integer(nextindex_tmp + 1));

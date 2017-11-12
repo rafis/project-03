@@ -10,18 +10,19 @@ public class machine3{
 	private static final Integer max_integer = Utilities.max_integer;
 	private static final Integer min_integer = Utilities.min_integer;
 
-	create_chat_session evt_create_chat_session = new create_chat_session(this);
 	broadcast evt_broadcast = new broadcast(this);
+	unselect_chat evt_unselect_chat = new unselect_chat(this);
+	forward evt_forward = new forward(this);
+	delete_content evt_delete_content = new delete_content(this);
+	create_chat_session evt_create_chat_session = new create_chat_session(this);
 	reading_chat evt_reading_chat = new reading_chat(this);
 	delete_chat_session evt_delete_chat_session = new delete_chat_session(this);
 	unmute_chat evt_unmute_chat = new unmute_chat(this);
 	select_chat evt_select_chat = new select_chat(this);
-	unselect_chat evt_unselect_chat = new unselect_chat(this);
-	forward evt_forward = new forward(this);
-	delete_content evt_delete_content = new delete_content(this);
 	mute_chat evt_mute_chat = new mute_chat(this);
 	chatting evt_chatting = new chatting(this);
 	remove_content evt_remove_content = new remove_content(this);
+	add_user evt_add_user = new add_user(this);
 
 
 	/******Set definitions******/
@@ -55,6 +56,8 @@ public class machine3{
 
 	/*@ spec_public */ private BRelation<Integer,Integer> muted;
 
+	/*@ spec_public */ private Integer nextUserIndex;
+
 	/*@ spec_public */ private Integer nextindex;
 
 	/*@ spec_public */ private BRelation<Integer,Integer> owner;
@@ -79,6 +82,7 @@ public class machine3{
 		 (\forall Integer c;  (\forall Integer u1;  (\forall Integer u2;((content.has(c) && user.has(u1) && user.has(u2) && chatcontent.domain().restrictDomainTo(new BSet<Integer>(c)).range().has(u1) && chatcontent.domain().restrictDomainTo(new BSet<Integer>(c)).range().has(u2)) ==> (u1.equals(u2)))))) &&
 		(muted.intersection(active)).equals(BSet.EMPTY) &&
 		 (\forall Integer c;  (\forall Integer u;((chatcontent.domain().has(new Pair<Integer,Integer>(c,u))) ==> (!chatcontent.restrictDomainTo(new BRelation<Integer,Integer>(new Pair<Integer,Integer>(c,u))).equals(BSet.EMPTY))))) &&
+		NAT1.instance.has(nextUserIndex) &&
 		 toread.domain().isSubset(user) && toread.range().isSubset(user) && BRelation.cross(user,user).has(toread) &&
 		toread.isSubset(chat) &&
 		inactive.isSubset(chat) &&
@@ -113,6 +117,22 @@ public class machine3{
 	/*@ public normal_behavior
 	    requires true;
 	    assignable \nothing;
+	    ensures \result == this.nextUserIndex;*/
+	public /*@ pure */ Integer get_nextUserIndex(){
+		return this.nextUserIndex;
+	}
+
+	/*@ public normal_behavior
+	    requires true;
+	    assignable this.nextUserIndex;
+	    ensures this.nextUserIndex == nextUserIndex;*/
+	public void set_nextUserIndex(Integer nextUserIndex){
+		this.nextUserIndex = nextUserIndex;
+	}
+
+	/*@ public normal_behavior
+	    requires true;
+	    assignable \nothing;
 	    ensures \result == this.owner;*/
 	public /*@ pure */ BRelation<Integer,Integer> get_owner(){
 		return this.owner;
@@ -122,11 +142,59 @@ public class machine3{
 	    requires true;
 	    assignable this.owner;
 	    ensures this.owner == owner;*/
+	public void set_owner(BSet<Pair<Integer,Integer>> owner){
+		set_owner(new BRelation<>(owner));
+	}
 	public void set_owner(BRelation<Integer,Integer> owner){
 		this.owner = owner;
 	}
-	public void set_owner(BSet<Pair<Integer,Integer>> owner){
-		set_owner(new BRelation<>(owner));
+
+	/*@ public normal_behavior
+	    requires true;
+	    assignable \nothing;
+	    ensures \result == this.nextindex;*/
+	public /*@ pure */ Integer get_nextindex(){
+		return this.nextindex;
+	}
+
+	/*@ public normal_behavior
+	    requires true;
+	    assignable this.nextindex;
+	    ensures this.nextindex == nextindex;*/
+	public void set_nextindex(Integer nextindex){
+		this.nextindex = nextindex;
+	}
+
+	/*@ public normal_behavior
+	    requires true;
+	    assignable \nothing;
+	    ensures \result == this.active;*/
+	public /*@ pure */ BRelation<Integer,Integer> get_active(){
+		return this.active;
+	}
+
+	/*@ public normal_behavior
+	    requires true;
+	    assignable this.active;
+	    ensures this.active == active;*/
+	public void set_active(BRelation<Integer,Integer> active){
+		this.active = active;
+	}
+
+	/*@ public normal_behavior
+	    requires true;
+	    assignable \nothing;
+	    ensures \result == this.content;*/
+	public /*@ pure */ BSet<Integer> get_content(){
+		return this.content;
+	}
+
+	/*@ public normal_behavior
+	    requires true;
+	    assignable this.content;
+	    ensures this.content == content;*/
+	public void set_content(BSet<Integer> content){
+		this.content = content;
 	}
 
 	/*@ public normal_behavior
@@ -196,38 +264,6 @@ public class machine3{
 	/*@ public normal_behavior
 	    requires true;
 	    assignable \nothing;
-	    ensures \result == this.nextindex;*/
-	public /*@ pure */ Integer get_nextindex(){
-		return this.nextindex;
-	}
-
-	/*@ public normal_behavior
-	    requires true;
-	    assignable this.nextindex;
-	    ensures this.nextindex == nextindex;*/
-	public void set_nextindex(Integer nextindex){
-		this.nextindex = nextindex;
-	}
-
-	/*@ public normal_behavior
-	    requires true;
-	    assignable \nothing;
-	    ensures \result == this.active;*/
-	public /*@ pure */ BRelation<Integer,Integer> get_active(){
-		return this.active;
-	}
-
-	/*@ public normal_behavior
-	    requires true;
-	    assignable this.active;
-	    ensures this.active == active;*/
-	public void set_active(BRelation<Integer,Integer> active){
-		this.active = active;
-	}
-
-	/*@ public normal_behavior
-	    requires true;
-	    assignable \nothing;
 	    ensures \result == this.muted;*/
 	public /*@ pure */ BRelation<Integer,Integer> get_muted(){
 		return this.muted;
@@ -260,22 +296,6 @@ public class machine3{
 	/*@ public normal_behavior
 	    requires true;
 	    assignable \nothing;
-	    ensures \result == this.content;*/
-	public /*@ pure */ BSet<Integer> get_content(){
-		return this.content;
-	}
-
-	/*@ public normal_behavior
-	    requires true;
-	    assignable this.content;
-	    ensures this.content == content;*/
-	public void set_content(BSet<Integer> content){
-		this.content = content;
-	}
-
-	/*@ public normal_behavior
-	    requires true;
-	    assignable \nothing;
 	    ensures \result == this.contenttoread;*/
 	public /*@ pure */ BRelation<Pair<Integer,Integer>,Integer> get_contenttoread(){
 		return this.contenttoread;
@@ -301,6 +321,7 @@ public class machine3{
 		active.isEmpty() &&
 		muted.isEmpty() &&
 		chatcontent.isEmpty() &&
+		nextUserIndex == 1 &&
 		toread.isEmpty() &&
 		inactive.isEmpty() &&
 		owner.isEmpty() &&
@@ -314,6 +335,7 @@ public class machine3{
 		active = new BRelation<Integer,Integer>();
 		muted = new BRelation<Integer,Integer>();
 		chatcontent = new BRelation<Pair<Integer,Integer>,Pair<Integer,Integer>>();
+		nextUserIndex = 1;
 		toread = new BRelation<Integer,Integer>();
 		inactive = new BRelation<Integer,Integer>();
 		owner = new BRelation<Integer,Integer>();

@@ -1,9 +1,13 @@
 package edu.models.whatsapp2;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -12,12 +16,16 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import whatsapp_sequential.machine3;
 
 public class LoginActivity extends AppCompatActivity {
     private static final String TAG = LoginActivity.class.getSimpleName();
 
     private FirebaseAuth firebaseAuth;
+    private TextInputLayout nicknameLayout;
     private EditText nicknameText;
 
     @Override
@@ -32,6 +40,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_login);
+        nicknameLayout = findViewById(R.id.nickname_layout);
         nicknameText = findViewById(R.id.nickname);
         nicknameText.setOnEditorActionListener((textView, id, keyEvent) -> {
             if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
@@ -44,17 +53,36 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private View.OnClickListener signClick = view -> {
+        String nickname = String.valueOf(nicknameText.getText());
+        if (nickname == null || nickname.isEmpty()) {
+            nicknameLayout.setError("This field should be filled");
+            return;
+        }
         firebaseAuth.signInAnonymously()
                 .addOnCompleteListener(LoginActivity.this, task -> {
                     if (task.isSuccessful()) {
+                        Integer userId = App.getMachine().get_nextUserIndex();
                         Log.d(TAG, "signInAnonymously:success");
+
                         FirebaseDatabase.getInstance().getReference()
-                                .child("users")
-                                .child(firebaseAuth.getCurrentUser().getUid()).setValue(nicknameText.getText().toString());
+                                .child("users_names")
+                                .child(userId.toString()).setValue(nickname);
+
+                        App.getMachine().get_add_user().run_add_user(userId);
+
+                        PreferenceManager.getDefaultSharedPreferences(this)
+                                .edit()
+                                .putInt("user_id", userId)
+                                .apply();
+
                         Toast
-                                .makeText(LoginActivity.this, "Welcome!", Toast.LENGTH_SHORT)
+                                .makeText(LoginActivity.this, String.format("Welcome, %s!", nickname), Toast.LENGTH_SHORT)
                                 .show();
-                        startActivity(new Intent(this, ChatsActivity.class));
+
+                        Intent chatsIntent = new Intent(this, ChatsActivity.class);
+                        chatsIntent.putExtra(ChatsActivity.EXTRA_USER_ID, userId);
+                        startActivity(chatsIntent);
+
                         finish();
                     } else {
                         Log.d(TAG, "signInAnonymously:unsuccess");
