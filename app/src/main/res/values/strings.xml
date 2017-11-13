@@ -6,4 +6,5 @@
     <string name="action_sign_in">Sign in</string>
     <string name="error_field_required">This field is required</string>
     <string name="start_new_conversation">Start new conversation</string>
+    <string name="title_activity_chatting">ChattingActivity</string>
 </resources>

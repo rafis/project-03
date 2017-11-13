@@ -3,15 +3,16 @@ package edu.models.whatsapp2;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.TwoLineListItem;
 
 import org.greenrobot.eventbus.EventBus;
@@ -25,6 +26,7 @@ import java.util.Objects;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import butterknife.OnItemClick;
 import edu.models.whatsapp2.events.ChatsEvent;
 import edu.models.whatsapp2.events.MessagesEvent;
 import eventb_prelude.BRelation;
@@ -51,6 +53,18 @@ public class ChatsActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        menu.setHeaderTitle("Chat menu");
+
+        menu.add("block");
+        menu.add("unblock");
+        menu.add("delete");
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
@@ -63,10 +77,17 @@ public class ChatsActivity extends AppCompatActivity {
         EventBus.getDefault().unregister(this);
     }
 
+    @OnItemClick(R.id.chats_list)
+    public void onItemClick(AdapterView<?> parent, int position) {
+        Integer u1 = App.getCurrentUserId();
+        Integer u2 = ((ChatListItem) adapter.getItem(position)).getU2();
+        machine.get_select_chat().run_select_chat(u1, u2);
+    }
+
     private void update() {
         Integer u1 = App.getCurrentUserId();
         if (machine.get_active().domain().contains(u1)) {
-            startActivity(new Intent(this, MessagesActivity.class));
+            startActivity(new Intent(this, ChattingActivity.class));
             return;
         }
         BRelation<Integer, Integer> chats = machine.get_chat().restrictDomainTo(new BSet<>(u1));
