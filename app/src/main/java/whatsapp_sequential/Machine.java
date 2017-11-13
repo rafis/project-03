@@ -28,8 +28,8 @@ public class Machine extends machine3 {
     private static final String TAG = Machine.class.getSimpleName();
 
     Gson gson = new GsonBuilder().create();
-    private Map<Integer, String> users_names;
-    private Map<Integer, String> messages;
+    private Map<Integer, String> users_names = new HashMap<>();
+    private Map<Integer, String> messages = new HashMap<>();
 
     public Machine() {
         super();

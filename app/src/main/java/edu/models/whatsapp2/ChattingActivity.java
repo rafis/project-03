@@ -24,11 +24,14 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnItemClick;
+import butterknife.OnItemLongClick;
 import edu.models.whatsapp2.events.MessagesEvent;
 import eventb_prelude.Pair;
 import whatsapp_sequential.Machine;
@@ -60,7 +63,6 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
             return;
         }
 
-        messagesList.setOnItemClickListener(chatChooseListener);
         send.setOnClickListener(this);
         registerForContextMenu(messagesList);
         adapter = new ChatsAdapter(this);
@@ -68,6 +70,17 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private MessageListItem messageToDelete;
+
+    @OnItemLongClick(R.id.messages_list)
+    public boolean OnItemLongClick(int position) {
+        messageToDelete = (MessageListItem) adapter.getItem(position);
+        new AlertDialog.Builder(this)
+                .setMessage("Do you want to delete this message?")
+                .setPositiveButton("yeap", dialogClickListener)
+                .setNegativeButton("nope", dialogClickListener).show();
+        return true;
+    }
+
     DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialogInterface, int i) {
@@ -80,15 +93,6 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
             messageToDelete = null;
         }
     };
-
-    private ListView.OnItemClickListener chatChooseListener =
-            (AdapterView<?> arg0, View view, int position, long arg3) -> {
-                messageToDelete = (MessageListItem) arg0.getItemAtPosition(position);
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage("Do you want to delete this message?")
-                        .setPositiveButton("yeap", dialogClickListener)
-                        .setNegativeButton("nope", dialogClickListener).show();
-            };
 
 
     @Override
@@ -142,6 +146,7 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
 
     private void update() {
         Map<Integer, String> messages = machine.get_messages();
+        if (messages == null) messages = new HashMap<>();
         List<MessageListItem> messageList = new ArrayList<>(messages.size());
         for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> chatContent : machine.get_chatcontent()) {
             if (chatContent.snd().fst().equals(u1) && chatContent.snd().snd().equals(u2)

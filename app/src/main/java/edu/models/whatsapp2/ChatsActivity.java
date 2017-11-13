@@ -1,9 +1,11 @@
 package edu.models.whatsapp2;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -25,6 +27,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
+import butterknife.OnItemLongClick;
 import edu.models.whatsapp2.events.ChatsEvent;
 import eventb_prelude.BRelation;
 import eventb_prelude.BSet;
@@ -33,6 +36,7 @@ import whatsapp_sequential.Machine;
 
 public class ChatsActivity extends AppCompatActivity {
     private Machine machine = App.getMachine();
+    private Integer u1 = App.getCurrentUserId();
 
     @BindView(R.id.chats_list)
     ListView chatsList;
@@ -80,6 +84,40 @@ public class ChatsActivity extends AppCompatActivity {
         machine.get_select_chat().run_select_chat(u1, u2);
     }
 
+    private ChatListItem chatToModify;
+
+    @OnItemLongClick(R.id.chats_list)
+    public boolean OnItemLongClick(int position) {
+        chatToModify = (ChatListItem) adapter.getItem(position);
+        String muteButtonText;
+        if (machine.get_muted().contains(new Pair<>(u1, chatToModify.getU2())))
+            muteButtonText = "unmute";
+        else
+            muteButtonText = "mute";
+        new AlertDialog.Builder(this)
+                .setMessage("What do you want with this chat?")
+                .setPositiveButton("delete", dialogClickListener)
+                .setNegativeButton(muteButtonText, dialogClickListener)
+                .setNeutralButton("nope", dialogClickListener)
+                .show();
+        return true;
+    }
+
+    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i) {
+            if (i == DialogInterface.BUTTON_POSITIVE) {
+                machine.get_delete_chat_session().run_delete_chat_session(u1, chatToModify.getU2());
+            } else if (i == DialogInterface.BUTTON_NEGATIVE) {
+                if (machine.get_muted().contains(new Pair<>(u1, chatToModify.getU2())))
+                    machine.get_unmute_chat().run_unmute_chat(u1, chatToModify.getU2());
+                else
+                    machine.get_mute_chat().run_mute_chat(u1, chatToModify.getU2());
+            }
+            chatToModify = null;
+        }
+    };
+
     private void update() {
         Integer u1 = App.getCurrentUserId();
         if (machine.get_active().domain().contains(u1)) {
@@ -92,10 +130,10 @@ public class ChatsActivity extends AppCompatActivity {
             Integer u2 = chat.snd();
             Boolean toRead = machine.get_toread().contains(chat);
             Boolean muted = machine.get_muted().contains(chat);
-            Pair<Integer, Integer> lastMessage =
-                    machine.get_chatcontent().restrictRangeTo(new BSet<>(chat)).union(
-                            machine.get_chatcontent().restrictRangeTo(new BSet<>(new Pair<>(u2, u1)))
-                    ).domain().last();
+            BSet<Pair<Integer, Integer>> lastMessages = machine.get_chatcontent().restrictRangeTo(new BSet<>(chat)).domain();
+            Pair<Integer, Integer> lastMessage = null;
+            if (lastMessages.size() != 0)
+                lastMessage = lastMessages.last();
             String lastText;
             if (lastMessage != null && machine.get_messages().containsKey(lastMessage.fst()))
                 lastText = machine.get_messages().get(lastMessage.fst());
