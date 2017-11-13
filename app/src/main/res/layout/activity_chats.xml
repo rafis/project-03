@@ -6,11 +6,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <Button
-
+    <ListView
+        android:id="@+id/chats_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="press me!" />
+        android:layout_height="match_parent" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/new_chat_btn"

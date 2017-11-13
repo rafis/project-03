@@ -17,6 +17,7 @@ import org.greenrobot.eventbus.EventBus;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.models.whatsapp2.events.ChatsEvent;
 import edu.models.whatsapp2.events.MessagesEvent;
 import edu.models.whatsapp2.events.UsersEvent;
 import eventb_prelude.BRelation;
@@ -29,7 +30,7 @@ public class Machine extends machine3 {
     ObjectMapper mapper = new ObjectMapper();
     Gson gson = new GsonBuilder().create();
     private Map<Integer, String> users_names;
-    private Map<Integer, String> content_content;
+    private Map<Integer, String> messages;
 
     public Machine() {
         super();
@@ -55,9 +56,11 @@ public class Machine extends machine3 {
                         break;
                     case "toread":
                         Machine.super.set_toread(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        EventBus.getDefault().post(new ChatsEvent());
                         break;
                     case "inactive":
                         Machine.super.set_inactive(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        EventBus.getDefault().post(new ChatsEvent());
                         break;
                     case "chatcontent":
                         Machine.super.set_chatcontent(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
@@ -65,6 +68,7 @@ public class Machine extends machine3 {
                         break;
                     case "chat":
                         Machine.super.set_chat(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        EventBus.getDefault().post(new ChatsEvent());
                         break;
                     case "nextindex":
                         Machine.super.set_nextindex(dataSnapshot.getValue(Integer.class));
@@ -78,6 +82,7 @@ public class Machine extends machine3 {
                         break;
                     case "active":
                         Machine.super.set_active(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        EventBus.getDefault().post(new ChatsEvent());
                         break;
                     case "muted":
                         Machine.super.set_muted(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
@@ -92,11 +97,11 @@ public class Machine extends machine3 {
                         Machine.this.set_users_names(users_names);
                         EventBus.getDefault().post(new UsersEvent());
                         break;
-                    case "content_content":
-                        Map<Integer, String> content_content = new HashMap<>();
+                    case "messages":
+                        Map<Integer, String> messages = new HashMap<>();
                         for (DataSnapshot child : dataSnapshot.getChildren())
-                            content_content.put(Integer.parseInt(child.getKey()), child.getValue(String.class));
-                        Machine.this.set_content_content(content_content);
+                            messages.put(Integer.parseInt(child.getKey()), child.getValue(String.class));
+                        Machine.this.set_messages(messages);
                         EventBus.getDefault().post(new MessagesEvent());
                         break;
                 }
@@ -118,12 +123,12 @@ public class Machine extends machine3 {
         this.users_names = users_names;
     }
 
-    public Map<Integer, String> get_content_content() {
-        return content_content;
+    public Map<Integer, String> get_messages() {
+        return messages;
     }
 
-    public void set_content_content(Map<Integer, String> content_content) {
-        this.content_content = content_content;
+    public void set_messages(Map<Integer, String> messages) {
+        this.messages = messages;
     }
 
     @Override

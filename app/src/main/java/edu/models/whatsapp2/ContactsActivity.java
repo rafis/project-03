@@ -37,13 +37,13 @@ public class ContactsActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         contactsList.setAdapter(adapter);
-        update();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
+        update();
     }
 
     @Override
