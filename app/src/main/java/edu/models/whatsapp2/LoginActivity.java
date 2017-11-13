@@ -77,6 +77,7 @@ public class LoginActivity extends AppCompatActivity {
                                 .edit()
                                 .putInt("user_id", userId)
                                 .apply();
+                        App.setCurrentUserId(userId);
 
                         Toast
                                 .makeText(LoginActivity.this, String.format("Welcome, %s!", nickname), Toast.LENGTH_SHORT)

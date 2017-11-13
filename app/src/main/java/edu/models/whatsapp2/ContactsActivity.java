@@ -3,14 +3,9 @@ package edu.models.whatsapp2;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.Adapter;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -20,7 +15,7 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import edu.models.whatsapp2.events.MessagesEvent;
+import butterknife.OnItemClick;
 import edu.models.whatsapp2.events.UsersEvent;
 import whatsapp_sequential.Machine;
 
@@ -31,15 +26,16 @@ public class ContactsActivity extends AppCompatActivity {
     @BindView(R.id.contacts_list)
     ListView contactsList;
 
-    ArrayAdapter<String> adapter;
+    ArrayAdapter<ContactListItem> adapter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        setTitle(R.string.start_new_conversation);
         ButterKnife.bind(this);
-        contactsList = (ListView) findViewById(R.id.contacts_list);
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);
         contactsList.setAdapter(adapter);
         update();
     }
@@ -48,13 +44,6 @@ public class ContactsActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
-
-        adapter.clear();
-        Map<String, String> users_names = machine.get_users_names();
-        for(Integer user : machine.get_user()) {
-            adapter.add(users_names.get(user.toString()));
-        }
-        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -64,23 +53,50 @@ public class ContactsActivity extends AppCompatActivity {
     }
 
     private void update() {
-        FirebaseDatabase.getInstance().getReference("users_names").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+        adapter.clear();
+        Map<Integer, String> users_names = machine.get_users_names();
+        for (Integer user : machine.get_user())
+            if (users_names.containsKey(user))
+                adapter.add(new ContactListItem(users_names.get(user), user));
+            else
+                adapter.add(new ContactListItem("Loading...", user));
+        adapter.notifyDataSetChanged();
+    }
 
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        contactsList.setAdapter(adapter);
+    @OnItemClick(R.id.contacts_list)
+    public void onItemClick(AdapterView<?> parent, int position) {
+        Integer u1 = App.getCurrentUserId();
+        Integer u2 = adapter.getItem(position).getId();
+        machine.get_create_chat_session().run_create_chat_session(u1, u2);
+        machine.get_select_chat().run_select_chat(u1, u2);
+        finish();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessage(UsersEvent event) {
         update();
+    }
+
+    static class ContactListItem {
+        private String name;
+        private Integer id;
+
+        public ContactListItem(String name, Integer id) {
+            this.name = name;
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Integer getId() {
+            return id;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 }

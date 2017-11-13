@@ -10,6 +10,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import butterknife.OnClick;
 import edu.models.whatsapp2.events.MessagesEvent;
 import whatsapp_sequential.Machine;
 
@@ -46,7 +47,7 @@ public class ChatsActivity extends AppCompatActivity {
         update();
     }
 
-    /** Called when the user taps the New Chat button */
+    @OnClick(R.id.new_chat_btn)
     public void newChat(View view) {
         startActivity(new Intent(this, ContactsActivity.class));
     }

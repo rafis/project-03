@@ -17,6 +17,7 @@ import org.greenrobot.eventbus.EventBus;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.models.whatsapp2.events.MessagesEvent;
 import edu.models.whatsapp2.events.UsersEvent;
 import eventb_prelude.BRelation;
 import eventb_prelude.BSet;
@@ -27,7 +28,8 @@ public class Machine extends machine3 {
 
     ObjectMapper mapper = new ObjectMapper();
     Gson gson = new GsonBuilder().create();
-    private Map<String, String> users_names;
+    private Map<Integer, String> users_names;
+    private Map<Integer, String> content_content;
 
     public Machine() {
         super();
@@ -84,11 +86,18 @@ public class Machine extends machine3 {
                         Machine.super.set_content(mapper.readValue(dataSnapshot.getValue(String.class), BSet.class));
                         break;
                     case "users_names":
-                        Map<String, String> users_names = new HashMap<String, String>();
-                        for (DataSnapshot child : dataSnapshot.getChildren()) {
-                            users_names.put(child.getKey(), child.getValue(String.class));
-                        }
+                        Map<Integer, String> users_names = new HashMap<>();
+                        for (DataSnapshot child : dataSnapshot.getChildren())
+                            users_names.put(Integer.parseInt(child.getKey()), child.getValue(String.class));
                         Machine.this.set_users_names(users_names);
+                        EventBus.getDefault().post(new UsersEvent());
+                        break;
+                    case "content_content":
+                        Map<Integer, String> content_content = new HashMap<>();
+                        for (DataSnapshot child : dataSnapshot.getChildren())
+                            content_content.put(Integer.parseInt(child.getKey()), child.getValue(String.class));
+                        Machine.this.set_content_content(content_content);
+                        EventBus.getDefault().post(new MessagesEvent());
                         break;
                 }
             } catch (Exception e) {
@@ -101,12 +110,20 @@ public class Machine extends machine3 {
         }
     };
 
-    public void set_users_names(Map<String, String> users_names) {
+    public Map<Integer, String> get_users_names() {
+        return this.users_names;
+    }
+
+    public void set_users_names(Map<Integer, String> users_names) {
         this.users_names = users_names;
     }
 
-    public Map<String, String> get_users_names() {
-        return this.users_names;
+    public Map<Integer, String> get_content_content() {
+        return content_content;
+    }
+
+    public void set_content_content(Map<Integer, String> content_content) {
+        this.content_content = content_content;
     }
 
     @Override
