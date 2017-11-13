@@ -62,6 +62,9 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
             return;
         }
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        setTitle("Chat with " + machine.get_users_names().get(u2));
+
         sendButton.setOnClickListener(this);
         registerForContextMenu(messagesList);
         adapter = new ChatsAdapter(this);
@@ -135,12 +138,12 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         unselect();
     }
 
     private void unselect() {
         machine.get_unselect_chat().run_unselect_chat(u1, u2);
+        finish();
     }
 
     private void update() {
