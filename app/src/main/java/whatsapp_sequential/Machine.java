@@ -117,6 +117,7 @@ public class Machine extends machine3 {
                             users_names.put(Integer.parseInt(child.getKey()), child.getValue(String.class));
                         Machine.this.set_users_names(users_names);
                         EventBus.getDefault().post(new UsersEvent());
+                        EventBus.getDefault().post(new ChatsEvent());
                         break;
                     case "messages":
                         Map<Integer, String> messages = new HashMap<>();

@@ -32,6 +32,7 @@ import whatsapp_sequential.Machine;
 public class ContactsActivity extends AppCompatActivity {
     public static final String TAG = ContactsActivity.class.getSimpleName();
     private Machine machine = App.getMachine();
+    private Integer u1;
 
     @BindView(R.id.contacts_list)
     ListView contactsList;
@@ -42,6 +43,7 @@ public class ContactsActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
+        u1 = App.getCurrentUserId();
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setTitle(R.string.start_new_conversation);
         ButterKnife.bind(this);
@@ -65,17 +67,18 @@ public class ContactsActivity extends AppCompatActivity {
     private void update() {
         adapter.clear();
         Map<Integer, String> users_names = machine.get_users_names();
-        for (Integer user : machine.get_user())
+        for (Integer user : machine.get_user()) {
+            if (u1.equals(user)) continue;
             if (users_names.containsKey(user))
                 adapter.add(new ContactListItem(users_names.get(user), user));
             else
                 adapter.add(new ContactListItem("Loading...", user));
+        }
         adapter.notifyDataSetChanged();
     }
 
     @OnItemClick(R.id.contacts_list)
     public void onItemClick(AdapterView<?> parent, int position) {
-        Integer u1 = App.getCurrentUserId();
         Integer u2 = adapter.getItem(position).getId();
         machine.get_create_chat_session().run_create_chat_session(u1, u2);
         machine.get_select_chat().run_select_chat(u1, u2);

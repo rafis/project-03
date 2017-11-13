@@ -94,6 +94,8 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
                 .setValue(messageEdit.getText().toString());
 
         machine.get_chatting().run_chatting(index, u1, u2);
+
+        messageEdit.setText("");
     }
 
     @Override

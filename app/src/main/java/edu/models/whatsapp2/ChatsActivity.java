@@ -94,7 +94,10 @@ public class ChatsActivity extends AppCompatActivity {
         List<ChatListItem> listItems = new ArrayList<>(chats.size());
         for (Pair<Integer, Integer> chat : chats) {
             Integer u2 = chat.snd();
-            listItems.add(new ChatListItem(u2, machine.get_users_names().get(u2), "this is the last message"));
+            if (machine.get_users_names().containsKey(u2))
+                listItems.add(new ChatListItem(u2, machine.get_users_names().get(u2), "this is the last message"));
+            else
+                listItems.add(new ChatListItem(u2, "Loading...", "Loading..."));
         }
         adapter.setChats(listItems);
     }
