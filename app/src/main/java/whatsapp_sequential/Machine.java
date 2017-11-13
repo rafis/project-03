@@ -105,6 +105,7 @@ public class Machine extends machine3 {
                         Machine.super.set_muted(gson.fromJson(dataSnapshot.getValue(String.class),
                                 new TypeToken<BRelation<Integer, Integer>>() {
                                 }.getType()));
+                        EventBus.getDefault().post(new ChatsEvent());
                         break;
                     case "content":
                         Machine.super.set_content(gson.fromJson(dataSnapshot.getValue(String.class),

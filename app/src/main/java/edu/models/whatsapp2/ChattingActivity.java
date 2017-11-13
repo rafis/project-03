@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,8 +29,8 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnItemClick;
 import butterknife.OnItemLongClick;
+import edu.models.whatsapp2.events.ChatsEvent;
 import edu.models.whatsapp2.events.MessagesEvent;
 import eventb_prelude.Pair;
 import whatsapp_sequential.Machine;
@@ -42,7 +41,7 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
     @BindView(R.id.messages_list)
     ListView messagesList;
     @BindView(R.id.send_btn)
-    Button send;
+    Button sendButton;
     @BindView(R.id.messageEdit)
     EditText messageEdit;
 
@@ -63,7 +62,7 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
             return;
         }
 
-        send.setOnClickListener(this);
+        sendButton.setOnClickListener(this);
         registerForContextMenu(messagesList);
         adapter = new ChatsAdapter(this);
         messagesList.setAdapter(adapter);
@@ -145,6 +144,10 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void update() {
+        boolean enabled = !machine.get_muted().contains(new Pair<>(u2, u1));
+        sendButton.setEnabled(enabled);
+        messageEdit.setEnabled(enabled);
+
         Map<Integer, String> messages = machine.get_messages();
         if (messages == null) messages = new HashMap<>();
         List<MessageListItem> messageList = new ArrayList<>(messages.size());
@@ -167,6 +170,11 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessagesEvent event) {
+        update();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onChatsEvent(ChatsEvent event) {
         update();
     }
 
