@@ -1,18 +1,21 @@
 package edu.models.whatsapp2;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.TwoLineListItem;
 
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -20,11 +23,13 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import edu.models.whatsapp2.events.Events;
+import edu.models.whatsapp2.events.MessagesEvent;
 import eventb_prelude.Pair;
 import whatsapp_sequential.Machine;
 
@@ -38,7 +43,7 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
     @BindView(R.id.messageEdit)
     EditText messageEdit;
 
-    ArrayAdapter<String> adapter;
+    ChatsAdapter adapter;
     Integer u1 = -1;
     Integer u2 = -1;
 
@@ -58,7 +63,7 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
         messagesList.setOnItemClickListener(chatChooseListener);
         send.setOnClickListener(this);
         registerForContextMenu(messagesList);
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        adapter = new ChatsAdapter(this);
         messagesList.setAdapter(adapter);
     }
 
@@ -102,6 +107,7 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
     protected void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
+        update();
     }
 
     @Override
@@ -132,20 +138,105 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void update() {
-        adapter.clear();
-
         Map<Integer, String> messages = machine.get_messages();
+        List<MessageListItem> messageList = new ArrayList<>(messages.size());
         for (Pair<Pair<Integer, Integer>, Pair<Integer, Integer>> chatContent : machine.get_chatcontent()) {
             if (chatContent.snd().fst().equals(u1) && chatContent.snd().snd().equals(u2)
                     && messages.containsKey(chatContent.fst().fst())) {
-                adapter.add(messages.get(chatContent.fst().fst()));
+                Integer sender = chatContent.fst().snd();
+                messageList.add(new MessageListItem(sender,
+                        machine.get_users_names().get(sender),
+                        messages.get(chatContent.fst().fst())
+                ));
             }
         }
-        adapter.notifyDataSetChanged();
+
+        adapter.setChats(messageList);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void messageReceived(Events.MessageReceived event) {
+    public void onMessageEvent(MessagesEvent event) {
         update();
+    }
+
+    static class ChatsAdapter extends BaseAdapter {
+
+        private LayoutInflater layoutInflater;
+        private List<MessageListItem> chats;
+
+        public ChatsAdapter(Context context) {
+            layoutInflater = LayoutInflater.from(context);
+        }
+
+        @Override
+        public int getCount() {
+            return chats == null ? 0 : chats.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return chats.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int i, View view, ViewGroup viewGroup) {
+            TwoLineListItem listItem;
+
+            if (view == null) {
+                listItem = (TwoLineListItem) layoutInflater.inflate(android.R.layout.simple_list_item_2, null);
+            } else {
+                listItem = (TwoLineListItem) view;
+            }
+
+            MessageListItem message = chats.get(i);
+
+            listItem.getText1().setText(message.getName());
+            listItem.getText2().setText(message.getMessage());
+
+            int gravity;
+            if (App.getCurrentUserId().equals(message.getSender()))
+                gravity = Gravity.END;
+            else
+                gravity = Gravity.START;
+
+            listItem.getText1().setGravity(gravity);
+            listItem.getText2().setGravity(gravity);
+
+            return listItem;
+        }
+
+        public void setChats(List<MessageListItem> chats) {
+            this.chats = chats;
+            notifyDataSetChanged();
+        }
+    }
+
+    static class MessageListItem {
+        private Integer sender;
+        private String name;
+        private String message;
+
+        public MessageListItem(Integer sender, String name, String message) {
+            this.sender = sender;
+            this.name = name;
+            this.message = message;
+        }
+
+        public Integer getSender() {
+            return sender;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getMessage() {
+            return message;
+        }
     }
 }

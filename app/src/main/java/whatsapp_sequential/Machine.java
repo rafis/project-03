@@ -75,7 +75,7 @@ public class Machine extends machine3 {
                         Machine.super.set_chatcontent(gson.fromJson(dataSnapshot.getValue(String.class),
                                 new TypeToken<BRelation<Pair<Integer, Integer>, Pair<Integer, Integer>>>() {
                                 }.getType()));
-                        EventBus.getDefault().postSticky(new MessagesEvent());
+                        EventBus.getDefault().post(new MessagesEvent());
                         break;
                     case "chat":
                         Machine.super.set_chat(gson.fromJson(dataSnapshot.getValue(String.class),
