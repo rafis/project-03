@@ -17,9 +17,9 @@ public class remove_content{
 	/*@ public normal_behavior
 		requires true;
  		assignable \nothing;
-		ensures \result <==> (machine.get_user().has(u1) && machine.get_user().has(u2) && machine.get_chat().has(new Pair<Integer,Integer>(u1,u2)) && machine.get_active().has(new Pair<Integer,Integer>(u1,u2)) && machine.get_content().has(c) && machine.get_chatcontent().domain().has(new Pair<Integer,Integer>(c,u1)) && machine.get_chatcontent().restrictDomainTo(new BRelation<Integer,Integer>(new Pair<Integer,Integer>(c,u1))).range().has(new Pair<Integer,Integer>(u1,u2))); */
+		ensures \result <==> (machine.get_user().has(u1) && machine.get_user().has(u2) && machine.get_chat().has(new Pair<Integer,Integer>(u1,u2)) && machine.get_content().has(c) && machine.get_chatcontent().domain().has(new Pair<Integer,Integer>(c,u1)) && machine.get_chatcontent().restrictDomainTo(new BRelation<Integer,Integer>(new Pair<Integer,Integer>(c,u1))).range().has(new Pair<Integer,Integer>(u1,u2))); */
 	public /*@ pure */ boolean guard_remove_content( Integer c, Integer u1, Integer u2) {
-		return (machine.get_user().has(u1) && machine.get_user().has(u2) && machine.get_chat().has(new Pair<Integer,Integer>(u1,u2)) && machine.get_active().has(new Pair<Integer,Integer>(u1,u2)) && machine.get_content().has(c) && machine.get_chatcontent().domain().has(new Pair<Integer,Integer>(c,u1)) && machine.get_chatcontent().restrictDomainTo(new BRelation<Integer,Integer>(new Pair<Integer,Integer>(c,u1))).range().has(new Pair<Integer,Integer>(u1,u2)));
+		return (machine.get_user().has(u1) && machine.get_user().has(u2) && machine.get_chat().has(new Pair<Integer,Integer>(u1,u2)) && machine.get_content().has(c) && machine.get_chatcontent().domain().has(new Pair<Integer,Integer>(c,u1)) && machine.get_chatcontent().restrictDomainTo(new BRelation<Integer,Integer>(new Pair<Integer,Integer>(c,u1))).range().has(new Pair<Integer,Integer>(u1,u2)));
 	}
 
 	/*@ public normal_behavior

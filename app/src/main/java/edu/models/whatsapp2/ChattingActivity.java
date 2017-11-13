@@ -67,20 +67,23 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
         messagesList.setAdapter(adapter);
     }
 
-    DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
-        switch (which) {
-            case DialogInterface.BUTTON_POSITIVE:
-                //TODO
-                break;
-
-            case DialogInterface.BUTTON_NEGATIVE:
-                //Do nothing
-                break;
+    private MessageListItem messageToDelete;
+    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialogInterface, int i) {
+            if (i == DialogInterface.BUTTON_POSITIVE) {
+                if (messageToDelete.getOwner().equals(u1))
+                    machine.get_remove_content().run_remove_content(messageToDelete.content, messageToDelete.getSender(), messageToDelete.getReceiver());
+                else
+                    machine.get_delete_content().run_delete_content(messageToDelete.content, messageToDelete.getSender(), messageToDelete.getReceiver());
+            }
+            messageToDelete = null;
         }
     };
 
     private ListView.OnItemClickListener chatChooseListener =
             (AdapterView<?> arg0, View view, int position, long arg3) -> {
+                messageToDelete = (MessageListItem) arg0.getItemAtPosition(position);
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setMessage("Do you want to delete this message?")
                         .setPositiveButton("yeap", dialogClickListener)
@@ -145,6 +148,9 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
                     && messages.containsKey(chatContent.fst().fst())) {
                 Integer sender = chatContent.fst().snd();
                 messageList.add(new MessageListItem(sender,
+                        chatContent.snd().fst(),
+                        chatContent.snd().snd(),
+                        chatContent.fst().fst(),
                         machine.get_users_names().get(sender),
                         messages.get(chatContent.fst().fst())
                 ));
@@ -199,7 +205,7 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
             listItem.getText2().setText(message.getMessage());
 
             int gravity;
-            if (App.getCurrentUserId().equals(message.getSender()))
+            if (App.getCurrentUserId().equals(message.getOwner()))
                 gravity = Gravity.END;
             else
                 gravity = Gravity.START;
@@ -217,18 +223,36 @@ public class ChattingActivity extends AppCompatActivity implements View.OnClickL
     }
 
     static class MessageListItem {
+        private Integer owner;
         private Integer sender;
+        private Integer receiver;
+        private Integer content;
         private String name;
         private String message;
 
-        public MessageListItem(Integer sender, String name, String message) {
+        public MessageListItem(Integer owner, Integer sender, Integer receiver, Integer content, String name, String message) {
+            this.owner = owner;
             this.sender = sender;
+            this.receiver = receiver;
+            this.content = content;
             this.name = name;
             this.message = message;
         }
 
+        public Integer getOwner() {
+            return owner;
+        }
+
         public Integer getSender() {
             return sender;
+        }
+
+        public Integer getReceiver() {
+            return receiver;
+        }
+
+        public Integer getContent() {
+            return content;
         }
 
         public String getName() {

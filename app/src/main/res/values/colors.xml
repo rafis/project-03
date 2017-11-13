@@ -3,4 +3,8 @@
     <color name="colorPrimary">#00c853</color>
     <color name="colorPrimaryDark">#009624</color>
     <color name="colorAccent">#fbc02d</color>
+
+    <color name="toread">#ddd</color>
+    <color name="muted">#ff9999</color>
+    <color name="inactive">#ffffff</color>
 </resources>

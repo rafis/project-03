@@ -3,7 +3,6 @@ package edu.models.whatsapp2;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.ContextMenu;
@@ -21,21 +20,18 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import edu.models.whatsapp2.events.ChatsEvent;
-import edu.models.whatsapp2.events.MessagesEvent;
 import eventb_prelude.BRelation;
 import eventb_prelude.BSet;
 import eventb_prelude.Pair;
 import whatsapp_sequential.Machine;
 
 public class ChatsActivity extends AppCompatActivity {
-    public static final String EXTRA_USER_ID = "EXTRA_USER_ID";
     private Machine machine = App.getMachine();
 
     @BindView(R.id.chats_list)
@@ -94,10 +90,22 @@ public class ChatsActivity extends AppCompatActivity {
         List<ChatListItem> listItems = new ArrayList<>(chats.size());
         for (Pair<Integer, Integer> chat : chats) {
             Integer u2 = chat.snd();
+            Boolean toRead = machine.get_toread().contains(chat);
+            Boolean muted = machine.get_muted().contains(chat);
+            Pair<Integer, Integer> lastMessage =
+                    machine.get_chatcontent().restrictRangeTo(new BSet<>(chat)).union(
+                            machine.get_chatcontent().restrictRangeTo(new BSet<>(new Pair<>(u2, u1)))
+                    ).domain().last();
+            String lastText;
+            if (lastMessage != null && machine.get_messages().containsKey(lastMessage.fst()))
+                lastText = machine.get_messages().get(lastMessage.fst());
+            else lastText = "";
+            String name;
             if (machine.get_users_names().containsKey(u2))
-                listItems.add(new ChatListItem(u2, machine.get_users_names().get(u2), "this is the last message"));
+                name = machine.get_users_names().get(u2);
             else
-                listItems.add(new ChatListItem(u2, "Loading...", "Loading..."));
+                name = "Loading...";
+            listItems.add(new ChatListItem(u2, name, lastText, toRead, muted));
         }
         adapter.setChats(listItems);
     }
@@ -145,9 +153,17 @@ public class ChatsActivity extends AppCompatActivity {
             } else {
                 listItem = (TwoLineListItem) view;
             }
+            ChatListItem chat = chats.get(i);
+            int color;
+            if (chat.getMuted())
+                color = R.color.muted;
+            else if (chat.getToRead())
+                color = R.color.toread;
+            else color = R.color.inactive;
 
-            listItem.getText1().setText(chats.get(i).getName());
-            listItem.getText2().setText(chats.get(i).getLastMessage());
+            listItem.getText1().setText(chat.getName());
+            listItem.getText2().setText(chat.getLastMessage());
+            listItem.setBackgroundResource(color);
 
             return listItem;
         }
@@ -166,11 +182,16 @@ public class ChatsActivity extends AppCompatActivity {
         private Integer u2;
         private String name;
         private String lastMessage;
+        private Boolean toRead;
+        private Boolean muted;
 
-        public ChatListItem(Integer u2, String name, String lastMessage) {
+
+        public ChatListItem(Integer u2, String name, String lastMessage, Boolean toRead, Boolean muted) {
             this.u2 = u2;
             this.name = name;
             this.lastMessage = lastMessage;
+            this.toRead = toRead;
+            this.muted = muted;
         }
 
         public Integer getU2() {
@@ -183,6 +204,14 @@ public class ChatsActivity extends AppCompatActivity {
 
         public String getLastMessage() {
             return lastMessage;
+        }
+
+        public Boolean getToRead() {
+            return toRead;
+        }
+
+        public Boolean getMuted() {
+            return muted;
         }
     }
 }
