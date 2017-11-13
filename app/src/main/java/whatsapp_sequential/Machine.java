@@ -10,6 +10,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 
 import org.greenrobot.eventbus.EventBus;
@@ -17,6 +18,7 @@ import org.greenrobot.eventbus.EventBus;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.models.whatsapp2.events.Events;
 import edu.models.whatsapp2.events.UsersEvent;
 import eventb_prelude.BRelation;
 import eventb_prelude.BSet;
@@ -28,6 +30,7 @@ public class Machine extends machine3 {
     ObjectMapper mapper = new ObjectMapper();
     Gson gson = new GsonBuilder().create();
     private Map<String, String> users_names;
+    private Map<String, String> messages;
 
     public Machine() {
         super();
@@ -38,6 +41,7 @@ public class Machine extends machine3 {
     private ValueEventListener valueEventListener = new ValueEventListener() {
         @Override
         public void onDataChange(DataSnapshot dataSnapshot) {
+            Log.d("chatchange1", dataSnapshot.toString());
             if (dataSnapshot.getKey() == null) {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren())
                     onDataChange(snapshot);
@@ -46,23 +50,31 @@ public class Machine extends machine3 {
             try {
                 switch (dataSnapshot.getKey()) {
                     case "contentorder":
-                        Machine.super.set_contentorder(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        Machine.super.set_contentorder((gson.fromJson(dataSnapshot.getValue(String.class),
+                                new TypeToken<BRelation<Integer, Integer>>(){}.getType())));
                         break;
                     case "owner":
-                        Machine.super.set_owner(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        Machine.super.set_owner(gson.fromJson(dataSnapshot.getValue(String.class),
+                                new TypeToken<BRelation<Integer, Integer>>(){}.getType()));
                         break;
                     case "toread":
-                        Machine.super.set_toread(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        Machine.super.set_toread(gson.fromJson(dataSnapshot.getValue(String.class),
+                                new TypeToken<BRelation<Integer, Integer>>(){}.getType()));
                         break;
                     case "inactive":
-                        Machine.super.set_inactive(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        Machine.super.set_inactive(gson.fromJson(dataSnapshot.getValue(String.class),
+                                new TypeToken<BRelation<Integer, Integer>>(){}.getType()));
                         break;
                     case "chatcontent":
-                        Machine.super.set_chatcontent(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
-                        EventBus.getDefault().post(new UsersEvent());
+                        Log.d("event32", dataSnapshot.toString());
+                        Machine.super.set_chatcontent(gson.fromJson(dataSnapshot.getValue(String.class),
+                                new TypeToken<BRelation<Pair<Integer,Integer>,Pair<Integer,Integer>>>(){}.getType()));
+                        EventBus.getDefault().postSticky(new Events.MessageReceived("message"));
                         break;
                     case "chat":
-                        Machine.super.set_chat(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        Machine.super.set_chat(gson.fromJson(dataSnapshot.getValue(String.class),
+                                new TypeToken<BRelation<Integer, Integer>>(){}.getType()));
+                        EventBus.getDefault().postSticky(new Events.ChatCreated("Hello"));
                         break;
                     case "nextindex":
                         Machine.super.set_nextindex(dataSnapshot.getValue(Integer.class));
@@ -71,17 +83,21 @@ public class Machine extends machine3 {
                         Machine.super.set_nextUserIndex(dataSnapshot.getValue(Integer.class));
                         break;
                     case "user":
-                        Machine.super.set_user(mapper.readValue(dataSnapshot.getValue(String.class), BSet.class));
+                        Machine.super.set_user(gson.fromJson(dataSnapshot.getValue(String.class),
+                                new TypeToken<BSet<Integer>>(){}.getType()));
                         EventBus.getDefault().post(new UsersEvent());
                         break;
                     case "active":
-                        Machine.super.set_active(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        Machine.super.set_active(gson.fromJson(dataSnapshot.getValue(String.class),
+                                new TypeToken<BRelation<Integer, Integer>>(){}.getType()));
                         break;
                     case "muted":
-                        Machine.super.set_muted(mapper.readValue(dataSnapshot.getValue(String.class), BRelation.class));
+                        Machine.super.set_muted(gson.fromJson(dataSnapshot.getValue(String.class),
+                                new TypeToken<BRelation<Integer, Integer>>(){}.getType()));
                         break;
                     case "content":
-                        Machine.super.set_content(mapper.readValue(dataSnapshot.getValue(String.class), BSet.class));
+                        Machine.super.set_content(gson.fromJson(dataSnapshot.getValue(String.class),
+                                new TypeToken<BSet<Integer>>(){}.getType()));
                         break;
                     case "users_names":
                         Map<String, String> users_names = new HashMap<String, String>();
@@ -90,8 +106,15 @@ public class Machine extends machine3 {
                         }
                         Machine.this.set_users_names(users_names);
                         break;
+                    case "messages":
+                        Map<String, String> messages = new HashMap<String, String>();
+                        for (DataSnapshot child : dataSnapshot.getChildren()) {
+                            messages.put(child.getKey(), child.getValue(String.class));
+                        }
+                        Machine.this.set_messages(messages);
+                        break;
                 }
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
         }
 
@@ -104,9 +127,15 @@ public class Machine extends machine3 {
     public void set_users_names(Map<String, String> users_names) {
         this.users_names = users_names;
     }
+    public void set_messages(Map<String, String> messages) {
+        this.messages = messages;
+    }
 
     public Map<String, String> get_users_names() {
         return this.users_names;
+    }
+    public Map<String, String> get_messages() {
+        return this.messages;
     }
 
     @Override
@@ -136,6 +165,7 @@ public class Machine extends machine3 {
     @Override
     public void set_chatcontent(BRelation<Pair<Integer, Integer>, Pair<Integer, Integer>> chatcontent) {
         super.set_chatcontent(chatcontent);
+        Log.d("sendingmessage", "Json: " + gson.toJson(chatcontent));
         FirebaseDatabase.getInstance().getReference("chatcontent").setValue(gson.toJson(chatcontent));
     }
 

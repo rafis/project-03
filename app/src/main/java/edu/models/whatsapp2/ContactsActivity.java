@@ -1,12 +1,19 @@
 package edu.models.whatsapp2;
 
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
 import android.widget.Adapter;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -17,16 +24,20 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.Map;
+import java.util.prefs.Preferences;
 
+import Util.Wrappers;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import edu.models.whatsapp2.events.MessagesEvent;
 import edu.models.whatsapp2.events.UsersEvent;
+import eventb_prelude.BRelation;
 import whatsapp_sequential.Machine;
 
 public class ContactsActivity extends AppCompatActivity {
     public static final String TAG = ContactsActivity.class.getSimpleName();
     private Machine machine = App.getMachine();
+    ObjectMapper mapper = new ObjectMapper();
 
     @BindView(R.id.contacts_list)
     ListView contactsList;
@@ -38,11 +49,29 @@ public class ContactsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contacts);
         ButterKnife.bind(this);
-        contactsList = (ListView) findViewById(R.id.contacts_list);
+//        contactsList = (ListView) findViewById(R.id.contacts_list);
+        contactsList.setOnItemClickListener(contactChooseListener);
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
         contactsList.setAdapter(adapter);
         update();
     }
+
+    private ListView.OnItemClickListener contactChooseListener =
+            (AdapterView<?> arg0, View view, int position, long arg3) -> {
+                Integer userId = PreferenceManager.getDefaultSharedPreferences(ContactsActivity.this)
+                        .getInt("user_id", -1);
+                Integer otherId = position + 1;
+                if(machine.get_create_chat_session().guard_create_chat_session(userId, otherId)) {
+                    machine.get_create_chat_session().run_create_chat_session(userId, otherId);
+                    try {
+                        FirebaseDatabase.getInstance().getReference()
+                                .child("chat")
+                                .setValue(mapper.writeValueAsString(machine.get_chat()));
+                    } catch (JsonProcessingException e) {
+                        Log.e("contacts", "objectMapper error");
+                    }
+                }
+            };
 
     @Override
     protected void onStart() {
